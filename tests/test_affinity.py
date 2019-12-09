@@ -1,5 +1,5 @@
-import affinity
+import receptor_affinity
 
 
 def test_version():
-    assert hasattr(affinity, '__version__')
+    assert hasattr(receptor_affinity, '__version__')

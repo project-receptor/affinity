@@ -9,7 +9,7 @@ setup(
     name='receptor-affinity',
     author='Red Hat',
     version='0.1.0',
-    packages=find_packages(include=['affinity']),
+    packages=find_packages(include=['receptor_affinity']),
     install_requires=['click'],
     # See https://pypi.org/classifiers/
     classifiers=[
@@ -28,7 +28,7 @@ setup(
     ),
     entry_points={
         'console_scripts': [
-            'affinity = affinity.cli:cli'
+            'affinity = receptor_affinity.cli:cli'
         ]
     },
     license='Apache 2.0',
