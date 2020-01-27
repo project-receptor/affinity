@@ -10,7 +10,15 @@ setup(
     author='Red Hat',
     version='0.1.0',
     packages=find_packages(include=['receptor_affinity']),
-    install_requires=['click'],
+    install_requires=[
+        'attrs',
+        'click',
+        'pyparsing',
+        'pyyaml',
+        'receptor',
+        'requests',
+        'wait_for',
+    ],
     # See https://pypi.org/classifiers/
     classifiers=[
         'Development Status :: 3 - Alpha',
