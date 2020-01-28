@@ -15,11 +15,12 @@ import requests
 import yaml
 from prometheus_client.parser import text_string_to_metric_families
 
+from .exceptions import RouteMismatchError, RouteUnavailableError
 from .utils import Conn
 from .utils import net_check
 from .utils import random_port
 from .utils import read_and_parse_metrics
-from wait_for import wait_for
+from wait_for import wait_for, TimedOutError
 
 STANDARD = 0
 DIAG = 1
@@ -136,16 +137,11 @@ class Node:
         else:
             return read_and_parse_metrics(routes)
 
-    def validate_routes(self):
+    def validate_routes(self) -> None:
         if not self.active:
-            raise Exception("Can't get routes from a stopped node")
-        print(f"****====TRYING COMPARE {self.name}")
-        node_routes = self.get_routes()
-        control_routes = self.mesh.generate_routes()
-        if node_routes and control_routes:
-            return self.mesh.compare_routes(node_routes, control_routes)
-        else:
-            return False
+            raise RouteUnavailableError(self)
+        if self.mesh.generate_routes() != self.get_routes():
+            raise RouteMismatchError(self.mesh, (self,))
 
     def ping(self, count, peer=None, node_ping_name="ping_node"):
 
@@ -220,14 +216,9 @@ class DiagNode(Node):
         wait_for(net_check, func_args=[self.api_port, self.api_address, True])
         super().wait_for_ports()
 
-    def validate_routes(self):
-        print(f"****====TRYING COMPARE {self.name}")
-        node_routes = self.get_routes()
-        control_routes = self.mesh.generate_routes()
-        if node_routes and control_routes:
-            return self.mesh.compare_routes(node_routes, control_routes)
-        else:
-            return False
+    def validate_routes(self) -> None:
+        if self.mesh.generate_routes() != self.get_routes():
+            raise RouteMismatchError(self.mesh, (self,))
 
     def get_routes(self):
         route_data = json.loads(
@@ -393,9 +384,7 @@ class Mesh:
             if self.use_diag_node:
                 self.diag_node.add_peer(self.find_controller()[0])
                 self.nodes[self.diag_node.name].connections.append(self.find_controller()[0].name)
-            wait_for(self.validate_all_node_routes, delay=6, num_sec=30)
-            # for name, node in self.nodes.items():
-            #    wait_for(lambda: node.validate_routes)
+            self.settle()
 
     def stop(self):
         for k, node in self.nodes.items():
@@ -427,6 +416,36 @@ class Mesh:
             results[node.name] = node.ping(count)
         return results
 
+    def settle(self) -> None:
+        """Wait for the mesh and its nodes to settle on the same routes.
+
+        If the nodes and mesh don't agree within approximately 30 seconds, throw
+        ``RouteMismatchError``.
+        """
+        # There's two reasons to catch TimedOutError. First, it doesn't give terribly useful
+        # diagnostic information, whereas RouteMismatchError (raised by validate_routes()) does.
+        # Second, we want this library to hide implementation details, like the fact that we depend
+        # on the wait-for package.
+        #
+        # It'd be nice if we could raise the original RouteMismatchError. Unfortunately,
+        # TimedOutError doesn't hold a reference to the underlying exception.
+        #
+        # We don't call validate_routes() for a final time from within the except: block, so as to
+        # make tracebacks more concise.
+        settled = True
+        try:
+            wait_for(
+                self.validate_routes,
+                delay=6,
+                num_sec=30,
+                handle_exception=True,
+                fail_condition=lambda result: isinstance(result, RouteMismatchError),
+            )
+        except TimedOutError:
+            settled = False
+        if not settled:
+            self.validate_routes()
+
     @staticmethod
     def validate_ping_results(results, threshold=0.1):
         valid = True
@@ -437,16 +456,14 @@ class Mesh:
                 valid = False
         return valid
 
-    @staticmethod
-    def compare_routes(route1, route2):
-        if route1 != route2:
-            print(f"****====MATCH FAIL")
-            print(route1)
-            print(route2)
-            return False
-        else:
-            print("****====MATCH")
-            return True
-
-    def validate_all_node_routes(self):
-        return all(node.validate_routes() for node in self.nodes.values() if node.active)
+    def validate_routes(self) -> None:
+        problem_nodes = []
+        for node in self.nodes.values():
+            if not node.active:
+                continue
+            try:
+                node.validate_routes()
+            except RouteMismatchError:
+                problem_nodes.append(node)
+        if problem_nodes:
+            raise RouteMismatchError(self, problem_nodes)
