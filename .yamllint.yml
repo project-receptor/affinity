@@ -1,0 +1,7 @@
+---
+# https://yamllint.readthedocs.io/en/stable/rules.html
+extends: default
+rules:
+  line-length:
+    # used by GitHub editor
+    max: 127
