@@ -407,7 +407,7 @@ class Mesh:
         print("all killed")
 
     @staticmethod
-    def load_mesh_from_file(filename, use_diag_node=False):
+    def load_from_file(filename, use_diag_node=False):
         with open(filename) as f:
             data = yaml.safe_load(f)
 
