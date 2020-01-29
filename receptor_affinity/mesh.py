@@ -15,8 +15,6 @@ import requests
 import yaml
 from prometheus_client.parser import text_string_to_metric_families
 
-from . import debugger
-from . import ping
 from .utils import Conn
 from .utils import net_check
 from .utils import random_port
@@ -167,8 +165,9 @@ class Node:
 
         starter = [
             "time",
-            "python",
-            ping.__file__,
+            "affinity",
+            "receptor",
+            "debugnode",
             "--data-path",
             self.data_path,
             "--node-id",
@@ -201,8 +200,9 @@ class DiagNode(Node):
 
     def _construct_run_command(self):
         starter = [
-            "python",
-            debugger.__file__,
+            "affinity",
+            "receptor",
+            "debugnode",
             "--listen",
             self.listen,
             "--data-path",

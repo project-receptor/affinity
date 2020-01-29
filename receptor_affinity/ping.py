@@ -1,10 +1,8 @@
 import asyncio
 import time
 
-import click
 
 from receptor import Controller
-from receptor import ReceptorConfig
 
 
 def run_as_ping(config):
@@ -41,20 +39,3 @@ def run_as_ping(config):
     controller = Controller(config)
     # controller.loop = asyncio.get_event_loop()
     return controller.run(ping_entrypoint)
-
-
-@click.command("ping")
-@click.option("--data-path", default="/tmp/receptor")
-@click.option("--peer", default="receptor://127.0.0.1:8889")
-@click.option("--id", default="node1")
-@click.option("--node-id", default="ping-node")
-@click.option("--count", default=10)
-def ping(data_path, peer, id, node_id, count):
-    config = ReceptorConfig(
-        ["-d", data_path, "--node-id", node_id, "ping", "--peer", peer, id, "--count", str(count)]
-    )
-    run_as_ping(config)
-
-
-if __name__ == "__main__":
-    ping()
