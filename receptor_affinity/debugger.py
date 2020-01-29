@@ -5,7 +5,6 @@ import time
 import uuid
 import dateutil.parser
 
-import click
 from aiohttp import web
 
 from receptor import Controller
@@ -117,13 +116,7 @@ class DiagNode:
         return web.Response(text=json.dumps(responses))
 
 
-@click.command("debugnode")
-@click.option("--data-path", default=None)
-@click.option("--node-id", default="diag_node")
-@click.option("--listen", default=None)
-@click.option("--api-address", default=None)
-@click.option("--api-port", default=None)
-def start(data_path, node_id, listen, api_address, api_port):
+def run_as_debugger(data_path, node_id, listen, api_address, api_port):
     controller = DiagNode(data_path, node_id, listen)
     controller.start("")
     app = web.Application()
@@ -133,7 +126,3 @@ def start(data_path, node_id, listen, api_address, api_port):
     app.add_routes([web.get("/connections", controller.connections)])
 
     web.run_app(app, host=api_address, port=api_port)
-
-
-if __name__ == "__main__":
-    start()
