@@ -63,7 +63,8 @@ class DiagNode:
 
         async def read_responses():
             for _ in ping_iter():
-                payload = await self.controller.recv()
+                message = await self.controller.recv()
+                payload = message.raw_payload
                 dta = json.loads(payload)
                 duration = dateutil.parser.parse(dta["response_time"]) - dateutil.parser.parse(
                     dta["initial_time"]
