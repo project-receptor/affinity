@@ -27,7 +27,8 @@ def run_as_ping(config):
 
     async def read_responses():
         for _ in ping_iter():
-            payload = await controller.recv()
+            message = await controller.recv()
+            payload = message.raw_payload
             print("{}".format(payload))
 
     async def send_pings():
