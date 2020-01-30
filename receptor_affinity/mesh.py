@@ -289,7 +289,7 @@ class Mesh:
             del self.nodes[node_name]
 
     @staticmethod
-    def generate_mesh(controller_port, node_count, conn_method, profile=False):
+    def gen(controller_port, node_count, conn_method, profile=False):
         mesh = Mesh()
         mesh.add_node(
             Node(
@@ -318,7 +318,7 @@ class Mesh:
         return mesh
 
     @staticmethod
-    def generate_random_mesh(controller_port, node_count, max_conn_count, profile):
+    def gen_random(controller_port, node_count, max_conn_count, profile):
         def peer_function(mesh, cur_node):
             nconns = defaultdict(int)
             print(mesh)
@@ -337,19 +337,15 @@ class Mesh:
             else:
                 return random.choices(available_nodes, k=int(random.random() * max_conn_count))
 
-        mesh = Mesh.generate_random_mesh(
-            controller_port, node_count, peer_function, profile
-        )
+        mesh = Mesh.gen_random(controller_port, node_count, peer_function, profile)
         return mesh
 
     @staticmethod
-    def generate_flat_mesh(controller_port, node_count, profile):
+    def gen_flat(controller_port, node_count, profile):
         def peer_function(*args):
             return ["controller"]
 
-        mesh = Mesh.generate_random_mesh(
-            controller_port, node_count, peer_function, profile
-        )
+        mesh = Mesh.gen_random(controller_port, node_count, peer_function, profile)
         return mesh
 
     def dump_yaml(self, filename=".last-mesh.yaml"):
