@@ -23,9 +23,9 @@ click = "^7.0"
 pyparsing = "^2.4.6"
 python = "^3.6"
 pyyaml = "^5.3"
-receptor = "^0.1.0"
+receptor = { git = "https://github.com/project-receptor/receptor.git" }
 requests = "^2.22.0"
-setuptools = "^45.1.0"  # For pkg_resources
+setuptools = "*"  # For pkg_resources
 wait-for = "^1.1.1"
 python-dateutil = "^2.8.1"
 prometheus-client = "^0.7.1"
