@@ -5,9 +5,7 @@ from .debugger import run_as_debugger
 from .ping import run_as_ping
 
 
-@click.group(
-    help="Helper commands to check receptor's binding affinity."
-)
+@click.group(help="Helper commands to check receptor's binding affinity.")
 def cli():
     pass
 
@@ -35,6 +33,17 @@ def debugnode(data_path, node_id, listen, api_address, api_port):
 @click.option("--count", default=10)
 def ping(data_path, peer, id, node_id, count):
     config = ReceptorConfig(
-        ["-d", data_path, "--node-id", node_id, "ping", "--peer", peer, id, "--count", str(count)]
+        [
+            "-d",
+            data_path,
+            "--node-id",
+            node_id,
+            "ping",
+            "--peer",
+            peer,
+            id,
+            "--count",
+            str(count),
+        ]
     )
     run_as_ping(config)

@@ -3,5 +3,5 @@
 extends: default
 rules:
   line-length:
-    # used by GitHub editor
-    max: 127
+    # same as black
+    max: 100

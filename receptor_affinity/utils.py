@@ -17,7 +17,8 @@ logger = logging.getLogger(__name__)
 _ports = defaultdict(dict)
 _dns_cache = {}
 ip_address = re.compile(
-    r"^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}" r"(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
+    r"^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}"
+    r"(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
 )
 
 
@@ -28,7 +29,12 @@ class Conn:
         self.cost = cost
 
     def __eq__(self, other):
-        if self.a == other.a and self.b == other.b or self.a == other.b and self.b == other.a:
+        if (
+            self.a == other.a
+            and self.b == other.b
+            or self.a == other.b
+            and self.b == other.a
+        ):
             return True
         return False
 
@@ -44,8 +50,15 @@ class Conn:
 def read_and_parse_metrics(raw_data):
     token = Suppress("'") + Word(alphanums + "_" + "-") + Suppress("'")
     group = Group(
-        Suppress("(") + token + Suppress(",") + token + Suppress(",") + Word(nums) + Suppress(
-            ")") + Suppress(Optional(',')))
+        Suppress("(")
+        + token
+        + Suppress(",")
+        + token
+        + Suppress(",")
+        + Word(nums)
+        + Suppress(")")
+        + Suppress(Optional(","))
+    )
     dot = Suppress("{") + OneOrMore(group) + Suppress("}")
     data = dot.parseString(raw_data).asList()
 

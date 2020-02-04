@@ -1,6 +1,6 @@
 # https://flake8.pycqa.org/en/latest/user/options.html
 [flake8]
 count = True
-# used by GitHub editor
-max-line-length = 127
+# same as black
+max-line-length = 100
 statistics = True

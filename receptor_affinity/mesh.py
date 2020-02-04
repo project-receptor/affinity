@@ -73,7 +73,15 @@ class Node:
 
     def _construct_run_command(self):
         if self.profile:
-            st = ["python", "-m", "cProfile", "-o", f"{self.name}.prof", "-m", "receptor.__main__"]
+            st = [
+                "python",
+                "-m",
+                "cProfile",
+                "-o",
+                f"{self.name}.prof",
+                "-m",
+                "receptor.__main__",
+            ]
         else:
             st = ["receptor"]
 
@@ -105,12 +113,16 @@ class Node:
         print(self.port, self.hostname)
         wait_for(net_check, func_args=[self.port, self.hostname, True], num_sec=10)
         if self.stats_enable:
-            wait_for(net_check, func_args=[self.stats_port, self.hostname, True], num_sec=10)
+            wait_for(
+                net_check, func_args=[self.stats_port, self.hostname, True], num_sec=10
+            )
 
     def stop(self):
         print(f"{time.time()} killing {self.name}({self.uuid})")
         try:
-            os.killpg(os.getpgid(procs[self.uuid].pid), signal.SIGKILL)  # TODO NICE FOR DEBUGGER
+            os.killpg(
+                os.getpgid(procs[self.uuid].pid), signal.SIGKILL
+            )  # TODO NICE FOR DEBUGGER
         except ProcessLookupError:
             print(f"Couldn't kill the process {procs[self.uuid].pid}")
         procs[self.uuid].wait()
@@ -127,7 +139,9 @@ class Node:
 
     def get_metrics(self):
         stats = requests.get(f"http://{self.hostname}:{self.stats_port}/metrics")
-        metrics = {metric.name: metric for metric in text_string_to_metric_families(stats.text)}
+        metrics = {
+            metric.name: metric for metric in text_string_to_metric_families(stats.text)
+        }
         return metrics
 
     def get_routes(self):
@@ -242,7 +256,9 @@ class DiagNode(Node):
 
     def add_peer(self, peer):
         coded_peer = quote(peer.listen)
-        requests.get(f"http://{self.api_address}:{self.api_port}/add_peer?peer={coded_peer}")
+        requests.get(
+            f"http://{self.api_address}:{self.api_port}/add_peer?peer={coded_peer}"
+        )
 
     def create_from_config(config):
         raise NotImplementedError
@@ -316,17 +332,23 @@ class Mesh:
             for k, node in mesh.nodes.items():
                 for conn in node.connections:
                     nconns[conn] += 1
-            available_nodes = list(filter(lambda o: nconns[o] < max_conn_count, mesh.nodes))
+            available_nodes = list(
+                filter(lambda o: nconns[o] < max_conn_count, mesh.nodes)
+            )
             print("------")
             print(nconns)
             print(available_nodes)
             print(cur_node.name)
-            print(random.choices(available_nodes, k=int(random.random() * max_conn_count)))
+            print(
+                random.choices(available_nodes, k=int(random.random() * max_conn_count))
+            )
             print("----")
             if cur_node.name not in available_nodes:
                 return []
             else:
-                return random.choices(available_nodes, k=int(random.random() * max_conn_count))
+                return random.choices(
+                    available_nodes, k=int(random.random() * max_conn_count)
+                )
 
         mesh = Mesh.gen_random(controller_port, node_count, peer_function, profile)
         return mesh
@@ -383,7 +405,9 @@ class Mesh:
                 node.wait_for_ports()
             if self.use_diag_node:
                 self.diag_node.add_peer(self.find_controller()[0])
-                self.nodes[self.diag_node.name].connections.append(self.find_controller()[0].name)
+                self.nodes[self.diag_node.name].connections.append(
+                    self.find_controller()[0].name
+                )
             self.settle()
 
     def stop(self):
