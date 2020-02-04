@@ -31,7 +31,9 @@ class DiagNode:
         return web.Response(text="Done")
 
     async def connections(self, request):
-        return web.Response(text=json.dumps(self.controller.receptor.router.get_edges()))
+        return web.Response(
+            text=json.dumps(self.controller.receptor.router.get_edges())
+        )
 
     async def add_peer(self, request):
         peer = request.query.get("peer", "receptor://127.0.0.1:8889")
@@ -65,9 +67,9 @@ class DiagNode:
             for _ in ping_iter():
                 payload = await self.controller.recv()
                 dta = json.loads(payload)
-                duration = dateutil.parser.parse(dta["response_time"]) - dateutil.parser.parse(
-                    dta["initial_time"]
-                )
+                duration = dateutil.parser.parse(
+                    dta["response_time"]
+                ) - dateutil.parser.parse(dta["initial_time"])
                 responses.append(duration.total_seconds())
                 print(duration.total_seconds())
                 print("{}".format(payload))

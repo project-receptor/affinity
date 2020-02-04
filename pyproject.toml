@@ -34,6 +34,7 @@ prometheus-client = "^0.7.1"
 flake8 = "^3.7.9"
 pytest = "^5.3.5"
 yamllint = "^1.20.0"
+black = "^19.10b0"
 
 [tool.poetry.plugins."console_scripts"]
 "affinity" = "receptor_affinity.cli:cli"
