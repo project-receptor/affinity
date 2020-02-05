@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# coding=utf-8
+set -euo pipefail
+
+# Ensure stashed changes are popped even when checks fail.
+cleanup() {
+    # This command sill fail if `git stash push` didn't push any changes onto
+    # the stack.
+    git stash pop --quiet || true
+}
+trap cleanup EXIT  # bash pseudo signal
+trap 'cleanup ; trap - SIGINT ; kill -s SIGINT $$' SIGINT
+trap 'cleanup ; trap - SIGTERM ; kill -s SIGTERM $$' SIGTERM
+
+git stash push --quiet --keep-index
+for script in scripts/*.sh; do
+    if [ "${script}" == 'scripts/install-pre-commit.sh' ]; then
+        continue
+    fi
+    echo "${script}"
+    "${script}"
+    echo
+done
+
+# vim:set ft=sh:
