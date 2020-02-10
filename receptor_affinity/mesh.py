@@ -15,7 +15,7 @@ import requests
 import yaml
 from prometheus_client.parser import text_string_to_metric_families
 
-from .exceptions import RouteMismatchError, RouteUnavailableError
+from .exceptions import RouteMismatchError, NodeUnavailableError
 from .utils import Conn
 from .utils import net_check
 from .utils import random_port
@@ -156,7 +156,7 @@ class Node:
 
     def validate_routes(self) -> None:
         if not self.active:
-            raise RouteUnavailableError(self)
+            raise NodeUnavailableError("Routes were requested from a stopped node.")
         if self.mesh.generate_routes() != self.get_routes():
             raise RouteMismatchError(self.mesh, (self,))
 
