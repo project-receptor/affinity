@@ -6,16 +6,6 @@ class BaseError(Exception):
     """Base class for all exceptions defined by this library."""
 
 
-class RouteUnavailableError(BaseError):
-    """Routes were requested from an inactive node."""
-
-    def __init__(self, node):
-        self._node_name = node.name
-
-    def __str__(self):
-        return f"Routes were requested from an inactive node, {self._node_name}"
-
-
 class RouteMismatchError(BaseError):
     """A mesh and its nodes have differing routing tables."""
 
@@ -42,3 +32,12 @@ class RouteMismatchError(BaseError):
                 f"Mismatched nodes: {', '.join(node.name for node in self._nodes)}"
             )
             return msg.getvalue()
+
+
+class NodeUnavailableError(BaseError):
+    """An operation was performed on an unavailable node.
+
+    An "unavailable node" is a ``Node`` object that doesn't have a corresponding receptor node
+    process. This exception doesn't specify why the receptor process is unavailable. For example, it
+    might have been cleanly stopped or it might have crashed.
+    """

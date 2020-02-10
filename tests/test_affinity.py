@@ -1,5 +1,5 @@
 import receptor_affinity
-from receptor_affinity.exceptions import RouteUnavailableError, RouteMismatchError
+from receptor_affinity.exceptions import RouteMismatchError, NodeUnavailableError
 from receptor_affinity.mesh import Mesh, Node
 
 
@@ -7,10 +7,10 @@ def test_version():
     assert hasattr(receptor_affinity, "__version__")
 
 
-def test_str_route_unavailable_error():
-    """Call ``str`` on a ``RouteUnavailableError``."""
+def test_str_stopped_node_error():
+    """Call ``str`` on a ``NodeUnavailableError``."""
     node = Node("my node")
-    err = RouteUnavailableError(node)
+    err = NodeUnavailableError(node)
     str(err)
 
 
