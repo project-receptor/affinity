@@ -40,6 +40,7 @@ atexit.register(shut_all_procs)
 class Node:
     name = attr.ib()
     controller = attr.ib(default=False)
+    # NOTE A receptor node can listen on multiple ports. This attr doesn't handle that possibility.
     listen = attr.ib(default=None)
     connections = attr.ib(factory=list)
     stats_enable = attr.ib(default=False)
@@ -110,8 +111,10 @@ class Node:
 
     def wait_for_ports(self):
         print("waiting for nodes ports " + self.name)
-        print(self.port, self.hostname)
-        wait_for(net_check, func_args=[self.port, self.hostname, True], num_sec=10)
+        print(self.listen_port, self.hostname)
+        wait_for(
+            net_check, func_args=[self.listen_port, self.hostname, True], num_sec=10
+        )
         if self.stats_enable:
             wait_for(
                 net_check, func_args=[self.stats_port, self.hostname, True], num_sec=10
@@ -134,7 +137,7 @@ class Node:
         return urlparse(self.listen).hostname
 
     @property
-    def port(self):
+    def listen_port(self) -> int:
         return urlparse(self.listen).port
 
     def get_metrics(self):
