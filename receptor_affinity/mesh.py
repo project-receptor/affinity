@@ -121,16 +121,38 @@ class Node:
             )
 
     def stop(self):
-        print(f"{time.time()} killing {self.name}({self.uuid})")
+        print(f"{time.time()} killing {self.name} ({self.uuid})")
         try:
-            os.killpg(
-                os.getpgid(procs[self.uuid].pid), signal.SIGKILL
-            )  # TODO NICE FOR DEBUGGER
+            pgid = self.pgid
         except ProcessLookupError:
-            print(f"Couldn't kill the process {procs[self.uuid].pid}")
+            print(f"Couldn't find a PGID for node {self.pid}; not stopping node.")
+
+        # TODO NICE FOR DEBUGGER
+        # TODO Shouldn't SIGTERM be tried before SIGKILL?
+        os.killpg(pgid, signal.SIGKILL)
         procs[self.uuid].wait()
         print(f"Service was kill {procs[self.uuid].returncode}")
         self.active = False
+        del procs[self.uuid]
+
+    @property
+    def pid(self) -> int:
+        """Get this node's PID (process ID).
+
+        Raises ``NodeUnavailableError`` if a PID can't be found.
+        """
+        try:
+            return procs[self.uuid].pid
+        except KeyError as err:
+            raise NodeUnavailableError("Can't get PID for a stopped node.") from err
+
+    @property
+    def pgid(self) -> int:
+        """Get this node's PGID (process group ID).
+
+        Raises ``ProcessLookupError`` if a PGID can't be found.
+        """
+        return os.getpgid(self.pid)
 
     @property
     def hostname(self):
