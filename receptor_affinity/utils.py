@@ -9,17 +9,12 @@ from pyparsing import nums
 from pyparsing import Optional
 from _collections import defaultdict
 import logging
-import re
 
 
 logger = logging.getLogger(__name__)
 
 _ports = defaultdict(dict)
 _dns_cache = {}
-ip_address = re.compile(
-    r"^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}"
-    r"(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
-)
 
 
 class Conn:
