@@ -14,6 +14,7 @@ import attr
 import requests
 import yaml
 from prometheus_client.parser import text_string_to_metric_families
+from typing import Dict
 
 from .exceptions import RouteMismatchError, NodeUnavailableError
 from .utils import Conn
@@ -25,7 +26,7 @@ from wait_for import wait_for, TimedOutError
 STANDARD = 0
 DIAG = 1
 
-procs = {}
+procs: Dict[uuid.UUID, subprocess.Popen] = {}
 
 
 def shut_all_procs():
@@ -292,7 +293,7 @@ class DiagNode(Node):
 @attr.s
 class Mesh:
     use_diag_node = attr.ib(default=False)
-    nodes = attr.ib(init=False, factory=dict)
+    nodes: Dict[str, Node] = attr.ib(init=False, factory=dict)
     diag_node = attr.ib(init=False, default=None)
 
     def __attrs_post_init__(self):
