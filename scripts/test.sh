@@ -2,4 +2,4 @@
 # coding=utf-8
 set -euo pipefail
 
-poetry run pytest
+poetry run pytest --numprocesses=auto
