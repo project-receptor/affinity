@@ -13,7 +13,7 @@ def test_version():
 
 def test_str_stopped_node_error():
     """Call ``str`` on a ``NodeUnavailableError``."""
-    node = Node("my node")
+    node = Node(str(uuid.uuid4()))
     err = NodeUnavailableError(node)
     str(err)
 
@@ -23,7 +23,7 @@ def test_str_route_mismatch_error():
     # Node.__init__ doesn't require all required attributes. It should be fixed, but in the
     # meantime, using Node.create_from_config works around this issue, as it provides many default
     # values.
-    node = Node.create_from_config({"name": "mynode"})
+    node = Node.create_from_config({"name": str(uuid.uuid4())})
     node.start()
     mesh = Mesh()
     mesh.add_node(node)
