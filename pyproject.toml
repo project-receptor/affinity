@@ -29,6 +29,7 @@ setuptools = "*"  # For pkg_resources
 wait-for = "^1.1.1"
 python-dateutil = "^2.8.1"
 prometheus-client = "^0.7.1"
+typing = "^3.7.4"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.7.9"
@@ -36,6 +37,7 @@ pytest = "^5.3.5"
 yamllint = "^1.20.0"
 black = "^19.10b0"
 pytest-xdist = "^1.31.0"
+mypy = "^0.761"
 
 [tool.poetry.plugins."console_scripts"]
 "affinity" = "receptor_affinity.cli:cli"

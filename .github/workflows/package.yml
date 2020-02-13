@@ -44,6 +44,23 @@ jobs:
       - name: Run yamllint
         run: scripts/lint-yamllint.sh
 
+  lint-mypy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v1
+      - name: Set up Python 3.6
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.6
+      - name: Install package and dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+          poetry install
+      - name: Run mypy
+        run: scripts/lint-mypy.sh
+
   test:
     runs-on: ubuntu-latest
     steps:

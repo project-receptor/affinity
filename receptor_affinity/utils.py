@@ -1,20 +1,20 @@
+import logging
 import socket
+from collections import defaultdict
 
-from pyparsing import alphanums
 from pyparsing import Group
 from pyparsing import OneOrMore
+from pyparsing import Optional
 from pyparsing import Suppress
 from pyparsing import Word
+from pyparsing import alphanums
 from pyparsing import nums
-from pyparsing import Optional
-from _collections import defaultdict
-import logging
+from typing import Dict
 
 
 logger = logging.getLogger(__name__)
 
-_ports = defaultdict(dict)
-_dns_cache = {}
+_ports: Dict[str, Dict[int, bool]] = defaultdict(dict)
 
 
 class Conn:
