@@ -1,6 +1,5 @@
 import logging
 import socket
-from collections import defaultdict
 
 from pyparsing import Group
 from pyparsing import OneOrMore
@@ -9,12 +8,9 @@ from pyparsing import Suppress
 from pyparsing import Word
 from pyparsing import alphanums
 from pyparsing import nums
-from typing import Dict
 
 
 logger = logging.getLogger(__name__)
-
-_ports: Dict[str, Dict[int, bool]] = defaultdict(dict)
 
 
 class Conn:
@@ -81,25 +77,3 @@ def random_port(tcp=True):
     addr, port = s.getsockname()
     s.close()
     return port
-
-
-def net_check(port, addr="localhost", force=False):
-    """Checks the availablility of a port"""
-    port = int(port)
-    if port not in _ports[addr] or force:
-        # First try DNS resolution
-        try:
-
-            addr = socket.gethostbyname(addr)
-
-            # Then try to connect to the port
-            try:
-                socket.create_connection((addr, port), timeout=10)
-                _ports[addr][port] = True
-            except socket.error:
-                logger.exception("failed connection")
-                _ports[addr][port] = False
-        except Exception as e:
-            logger.info(e)
-            _ports[addr][port] = False
-    return _ports[addr][port]

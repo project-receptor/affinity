@@ -11,14 +11,14 @@ from urllib.parse import quote
 from urllib.parse import urlparse
 
 import attr
+import psutil
 import requests
 import yaml
 from prometheus_client.parser import text_string_to_metric_families
-from typing import Dict
+from typing import Dict, Iterator
 
 from .exceptions import RouteMismatchError, NodeUnavailableError
 from .utils import Conn
-from .utils import net_check
 from .utils import random_port
 from .utils import read_and_parse_metrics
 from wait_for import wait_for, TimedOutError
@@ -110,16 +110,17 @@ class Node:
             self.wait_for_ports()
         self.active = True
 
-    def wait_for_ports(self):
-        print("waiting for nodes ports " + self.name)
-        print(self.listen_port, self.hostname)
-        wait_for(
-            net_check, func_args=[self.listen_port, self.hostname, True], num_sec=10
-        )
+    def wait_for_ports(self) -> None:
+        """Wait for this node to bind to ports.
+
+        More specifically, wait for the receptor process corresponding to this object to bind to the
+        port embedded in ``self.listen``. Raise ``TimedOutError`` if ports are not bound to within
+        10 seconds.
+        """
+        wanted_ports = {self.listen_port}
         if self.stats_enable:
-            wait_for(
-                net_check, func_args=[self.stats_port, self.hostname, True], num_sec=10
-            )
+            wanted_ports.add(self.stats_port)
+        wait_for(lambda: wanted_ports.issubset(set(self.bound_ports())), num_sec=10)
 
     def stop(self):
         print(f"{time.time()} killing {self.name} ({self.uuid})")
@@ -154,6 +155,12 @@ class Node:
         Raises ``ProcessLookupError`` if a PGID can't be found.
         """
         return os.getpgid(self.pid)
+
+    def bound_ports(self) -> Iterator[int]:
+        """Yield all ports that this node has bound to."""
+        for conn in psutil.Process(self.pid).connections():
+            if conn.status == "LISTEN":
+                yield conn.laddr.port
 
     @property
     def hostname(self):
@@ -252,9 +259,9 @@ class DiagNode(Node):
         return starter
 
     def wait_for_ports(self):
-        print(f"waiting for {self.api_port}, {self.api_address}")
-        wait_for(net_check, func_args=[self.api_port, self.api_address, True])
         super().wait_for_ports()
+        wanted_ports = {self.api_port}
+        wait_for(lambda: wanted_ports.issubset(set(self.bound_ports())), num_sec=10)
 
     def validate_routes(self) -> None:
         if self.mesh.generate_routes() != self.get_routes():
