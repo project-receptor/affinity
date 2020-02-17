@@ -157,8 +157,18 @@ class Node:
         return os.getpgid(self.pid)
 
     def bound_ports(self) -> Iterator[int]:
-        """Yield all ports that this node has bound to."""
-        for conn in psutil.Process(self.pid).connections():
+        """Yield all ports that this node has bound to.
+
+        Raise ``NodeUnavailableError`` if connections can't be fetched. (Perhaps the backing
+        receptor process has died?)
+        """
+        try:
+            conns = psutil.Process(self.pid).connections()
+        except psutil.AccessDenied as err:
+            raise NodeUnavailableError(
+                "Can't get conns for PID {self.pid}. Perhaps the PID has died?"
+            ) from err
+        for conn in conns:
             if conn.status == "LISTEN":
                 yield conn.laddr.port
 
