@@ -2,4 +2,4 @@
 # coding=utf-8
 set -euo pipefail
 
-poetry run flake8
+poetry run yamllint --strict .
