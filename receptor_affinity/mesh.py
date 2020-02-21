@@ -15,7 +15,7 @@ import psutil
 import requests
 import yaml
 from prometheus_client.parser import text_string_to_metric_families
-from typing import Dict, Iterator
+from typing import Dict, Iterable, Iterator
 
 from .exceptions import RouteMismatchError, NodeUnavailableError
 from .utils import Conn
@@ -208,7 +208,7 @@ class Node:
             return self.mesh.diag_node.ping(count=count, recipient=self.name)
 
         if not peer:
-            peer = self.mesh.find_controller()[0]
+            peer = self.mesh.controllers()[0]
 
         if node_ping_name not in self.mesh.nodes:
             self.mesh.add_node(DiagNode(name=node_ping_name))
@@ -449,9 +449,9 @@ class Mesh:
             for _, node in self.nodes.items():
                 node.wait_for_ports()
             if self.use_diag_node:
-                self.diag_node.add_peer(self.find_controller()[0])
+                self.diag_node.add_peer(self.controllers()[0])
                 self.nodes[self.diag_node.name].connections.append(
-                    self.find_controller()[0].name
+                    self.controllers()[0].name
                 )
             self.settle()
 
@@ -472,8 +472,9 @@ class Mesh:
 
         return mesh
 
-    def find_controller(self):
-        return list(filter(lambda o: o.controller, self.nodes.values()))
+    def controllers(self) -> Iterable[Node]:
+        """Return all controller nodes in this mesh."""
+        return tuple(node for node in self.nodes.values() if node.controller)
 
     def ping(self, count=10):
         results = {}
