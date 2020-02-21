@@ -58,18 +58,8 @@ class Node:
             self.data_path = f"/tmp/receptor/{str(self.uuid)}"
         if not self.listen:
             self.listen = f"receptor://0.0.0.0:{random_port()}"
-
-    @staticmethod
-    def create_from_config(config):
-        return Node(
-            name=config["name"],
-            listen=config.get("listen", f"receptor://0.0.0.0:{random_port()}"),
-            connections=config.get("connections", []) or [],
-            stats_enable=config.get("stats_enable", False),
-            stats_port=config.get("stats_port", None) or random_port(),
-            profile=config.get("profile", False),
-            data_path=config.get("data_path", None),
-        )
+        if self.stats_enable and not self.stats_port:
+            self.stats_port = random_port()
 
     def _construct_run_command(self):
         if self.profile:
@@ -311,9 +301,6 @@ class DiagNode(Node):
             f"http://{self.api_address}:{self.api_port}/add_peer?peer={coded_peer}"
         )
 
-    def create_from_config(config):
-        raise NotImplementedError
-
 
 @attr.s
 class Mesh:
@@ -470,7 +457,7 @@ class Mesh:
 
         mesh = Mesh(use_diag_node=use_diag_node)
         for node_name, definition in data["nodes"].items():
-            node = Node.create_from_config(definition)
+            node = Node(**definition)
             mesh.add_node(node)
 
         return mesh
