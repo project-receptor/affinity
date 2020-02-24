@@ -122,18 +122,20 @@ class Node:
             wanted_ports.add(self.stats_port)
         wait_for(lambda: wanted_ports.issubset(set(self.bound_ports())), num_sec=10)
 
-    def stop(self):
-        print(f"{time.time()} killing {self.name} ({self.uuid})")
+    def stop(self) -> None:
+        """Kill this node with SIGKILL.
+
+        If this node already appears to be dead, then do nothing.
+        """
         try:
             pgid = self.pgid
-        except ProcessLookupError:
-            print(f"Couldn't find a PGID for node {self.pid}; not stopping node.")
+        except NodeUnavailableError:
+            return  # Can't find node PID
 
         # TODO NICE FOR DEBUGGER
         # TODO Shouldn't SIGTERM be tried before SIGKILL?
         os.killpg(pgid, signal.SIGKILL)
         procs[self.uuid].wait()
-        print(f"Service was kill {procs[self.uuid].returncode}")
         self.active = False
         del procs[self.uuid]
 
