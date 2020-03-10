@@ -40,7 +40,6 @@ atexit.register(shut_all_procs)
 @attr.s
 class Node:
     name = attr.ib()
-    controller = attr.ib(default=False)
     # NOTE A receptor node can listen on multiple ports. This attr doesn't handle that possibility.
     listen = attr.ib(default=None)
     connections = attr.ib(factory=list)
@@ -64,7 +63,6 @@ class Node:
     def create_from_config(config):
         return Node(
             name=config["name"],
-            controller=config.get("controller", False),
             listen=config.get("listen", f"receptor://0.0.0.0:{random_port()}"),
             connections=config.get("connections", []) or [],
             stats_enable=config.get("stats_enable", False),
@@ -87,14 +85,19 @@ class Node:
         else:
             st = ["receptor"]
 
-        if self.controller:
-            st.extend(["-d", self.data_path, "--node-id", self.name, "controller"])
-            st.extend([f"--listen={self.listen}"])
-        else:
-            st.extend(["-d", self.data_path, "--node-id", self.name, "node"])
-            st.extend([f"--listen={self.listen}"])
-            for pnode in self.connections:
-                st.append(f"--peer={self.mesh.nodes[pnode].listen}")
+        st.extend(
+            [
+                "-d",
+                self.data_path,
+                "--node-id",
+                self.name,
+                "node",
+                f"--listen={self.listen}",
+            ]
+        )
+
+        for pnode in self.connections:
+            st.append(f"--peer={self.mesh.nodes[pnode].listen}")
 
         if self.stats_enable:
             st.extend(["--stats-enable", f"--stats-port={self.stats_port}"])
@@ -346,7 +349,6 @@ class Mesh:
         mesh.add_node(
             Node(
                 name="controller",
-                controller=True,
                 listen=f"receptor://127.0.0.1:{controller_port}",
                 profile=profile,
             )
@@ -356,14 +358,13 @@ class Mesh:
             mesh.add_node(
                 Node(
                     name=f"node{i}",
-                    controller=False,
                     listen=f"receptor://127.0.0.1:{random_port()}",
                     profile=profile,
                 )
             )
 
         for k, node in mesh.nodes.items():
-            if node.controller:
+            if node.name == "controller":
                 continue
             else:
                 node.connections.extend(conn_method(mesh, node))
@@ -412,8 +413,7 @@ class Mesh:
             for node, node_data in self.nodes.items():
                 data["nodes"][node] = {
                     "name": node_data.name,
-                    "listen": node_data.listen if node_data.controller else None,
-                    "controller": node_data.controller,
+                    "listen": node_data.listen,
                     "connections": node_data.connections,
                     "stats_enable": node_data.stats_enable,
                     "stats_port": node_data.stats_port,
@@ -473,7 +473,7 @@ class Mesh:
         return mesh
 
     def find_controller(self):
-        return list(filter(lambda o: o.controller, self.nodes.values()))
+        return list(filter(lambda node: node.name == "controller", self.nodes.values()))
 
     def ping(self, count=10):
         results = {}
