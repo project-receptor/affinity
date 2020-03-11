@@ -183,7 +183,10 @@ class Node:
 
     @property
     def listen_port(self) -> int:
-        return urlparse(self.listen).port
+        port = urlparse(self.listen).port
+        if port:
+            return port
+        return 8888
 
     def get_metrics(self):
         stats = requests.get(f"http://{self.hostname}:{self.stats_port}/metrics")

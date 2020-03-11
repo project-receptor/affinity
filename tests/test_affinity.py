@@ -101,3 +101,15 @@ def test_node_pgid_v3():
     node.stop()
     with pytest.raises(NodeUnavailableError):
         node.pgid
+
+
+def test_node_listen_port_v1():
+    """Call ``Node.listen_port`` on a node for which a port is specified."""
+    node = Node(str(uuid.uuid4()), listen="receptor://127.0.0.1:8825")
+    assert node.listen_port == 8825
+
+
+def test_node_listen_port_v2():
+    """Call ``Node.listen_port`` on a node for which no port is specified."""
+    node = Node(str(uuid.uuid4()), listen="receptor://127.0.0.1")
+    assert node.listen_port == 8888
